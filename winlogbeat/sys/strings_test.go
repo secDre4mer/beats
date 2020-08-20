@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/secDre4mer/beats/v7/libbeat/common"
 )
 
 func TestUTF16BytesToString(t *testing.T) {
