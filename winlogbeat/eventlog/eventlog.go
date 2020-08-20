@@ -22,11 +22,8 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 	"syscall"
-	"time"
 
-	"github.com/secDre4mer/beats/v7/libbeat/beat"
 	"github.com/secDre4mer/beats/v7/libbeat/common"
 	"github.com/secDre4mer/beats/v7/libbeat/logp"
 
@@ -80,82 +77,6 @@ type Record struct {
 	API    string                   // The event log API type used to read the record.
 	XML    string                   // XML representation of the event.
 	Offset checkpoint.EventLogState // Position of the record within its source stream.
-}
-
-// ToEvent returns a new beat.Event containing the data from this Record.
-func (e Record) ToEvent() beat.Event {
-	// Windows Log Specific data
-	win := common.MapStr{
-		"channel":       e.Channel,
-		"event_id":      e.EventIdentifier.ID,
-		"provider_name": e.Provider.Name,
-		"record_id":     e.RecordID,
-		"task":          e.Task,
-		"api":           e.API,
-	}
-	addOptional(win, "computer_name", e.Computer)
-	addOptional(win, "kernel_time", e.Execution.KernelTime)
-	addOptional(win, "keywords", e.Keywords)
-	addOptional(win, "opcode", e.Opcode)
-	addOptional(win, "processor_id", e.Execution.ProcessorID)
-	addOptional(win, "processor_time", e.Execution.ProcessorTime)
-	addOptional(win, "provider_guid", e.Provider.GUID)
-	addOptional(win, "session_id", e.Execution.SessionID)
-	addOptional(win, "task", e.Task)
-	addOptional(win, "user_time", e.Execution.UserTime)
-	addOptional(win, "version", e.Version)
-	// Correlation
-	addOptional(win, "activity_id", e.Correlation.ActivityID)
-	addOptional(win, "related_activity_id", e.Correlation.RelatedActivityID)
-	// Execution
-	addOptional(win, "process.pid", e.Execution.ProcessID)
-	addOptional(win, "process.thread.id", e.Execution.ThreadID)
-
-	if e.User.Identifier != "" {
-		user := common.MapStr{
-			"identifier": e.User.Identifier,
-		}
-		win["user"] = user
-		addOptional(user, "name", e.User.Name)
-		addOptional(user, "domain", e.User.Domain)
-		addOptional(user, "type", e.User.Type.String())
-	}
-
-	addPairs(win, "event_data", e.EventData.Pairs)
-	userData := addPairs(win, "user_data", e.UserData.Pairs)
-	addOptional(userData, "xml_name", e.UserData.Name.Local)
-
-	m := common.MapStr{
-		"winlog": win,
-	}
-
-	// ECS data
-	m.Put("event.kind", "event")
-	m.Put("event.code", e.EventIdentifier.ID)
-	m.Put("event.provider", e.Provider.Name)
-	addOptional(m, "event.action", e.Task)
-	addOptional(m, "host.name", e.Computer)
-
-	m.Put("event.created", time.Now())
-
-	addOptional(m, "log.file.path", e.File)
-	addOptional(m, "log.level", strings.ToLower(e.Level))
-	addOptional(m, "message", sys.RemoveWindowsLineEndings(e.Message))
-	// Errors
-	addOptional(m, "error.code", e.RenderErrorCode)
-	if len(e.RenderErr) == 1 {
-		addOptional(m, "error.message", e.RenderErr[0])
-	} else {
-		addOptional(m, "error.message", e.RenderErr)
-	}
-
-	addOptional(m, "event.original", e.XML)
-
-	return beat.Event{
-		Timestamp: e.TimeCreated.SystemTime,
-		Fields:    m,
-		Private:   e.Offset,
-	}
 }
 
 // addOptional adds a key and value to the given MapStr if the value is not the

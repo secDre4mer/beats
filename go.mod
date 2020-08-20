@@ -27,7 +27,7 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.6.1
-	go.elastic.co/apm v1.7.2
+	go.elastic.co/apm v1.8.0 // indirect
 	go.elastic.co/ecszap v0.1.1-0.20200424093508-cdd95a104193
 	go.uber.org/multierr v1.3.0
 	go.uber.org/zap v1.14.0
