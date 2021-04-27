@@ -280,6 +280,9 @@ func (l *winEventLog) Read() ([]Record, error) {
 
 func (l *winEventLog) Close() error {
 	debugf("%s Closing handle", l.logPrefix)
+	if l.cache != nil && l.cache.cache != nil {
+		l.cache.cache.StopJanitor()
+	}
 	return win.Close(l.subscription)
 }
 
